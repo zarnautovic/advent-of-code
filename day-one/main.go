@@ -39,16 +39,7 @@ func main() {
 func part1(input []string, re *regexp.Regexp ) int {
 	sum := 0
 	for _, line := range input {
-		spliced := strings.Join(strings.Split(line, ""), " ")
-		numberOnly := re.ReplaceAllString(spliced, "")
-		firstAndLast := string(numberOnly[0]) + string(numberOnly[len(numberOnly)-1])
-		number, err := strconv.Atoi(firstAndLast)
-
-		if (err != nil) {
-			fmt.Println(err)
-		}
-
-		sum += number
+		sum += getFirstAndLastNumber(line, re)
 	}
 	return sum
 }
@@ -57,7 +48,13 @@ func part2(input []string, re *regexp.Regexp) int {
 	sum := 0
 	for _, line := range input {
 		replaced := applyReplacementRules(line)
-		spliced := strings.Join(strings.Split(replaced, ""), " ")
+		sum += getFirstAndLastNumber(replaced, re)
+	}
+	return sum
+}
+
+func getFirstAndLastNumber(text string, re *regexp.Regexp) int {
+		spliced := strings.Join(strings.Split(text, ""), " ")
 		numberOnly := re.ReplaceAllString(spliced, "")
 		firstAndLast := string(numberOnly[0]) + string(numberOnly[len(numberOnly)-1])
 		number, err := strconv.Atoi(firstAndLast)
@@ -66,10 +63,8 @@ func part2(input []string, re *regexp.Regexp) int {
 			fmt.Println(err)
 		}
 
-		sum += number
+		return number;
 	}
-	return sum
-}
 	
 func applyReplacementRules(text string) string {
 	replacementRules := map[string]string{
