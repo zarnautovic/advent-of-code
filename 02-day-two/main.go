@@ -61,7 +61,6 @@ func main() {
 				fmt.Println(err)
 			}
 
-			// for every cubes if there is more then 12 red or 13 green or 14 blue skip
 			if (color == "red") {
 
 				if (number > 12) {
