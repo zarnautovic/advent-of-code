@@ -21,6 +21,5 @@ func main() {
 		row := fileScanner.Text();
 
 		fmt.Println(row)
-		// copyOfCards := cards
 	}
 }
