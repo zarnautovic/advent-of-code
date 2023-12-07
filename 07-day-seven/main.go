@@ -34,6 +34,7 @@ func main() {
 	}
 
 	totalWinnings := 0
+	totalWinningsJokers := 0
 
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
@@ -47,7 +48,16 @@ func main() {
 	var onePair [][]string
 	var highCard [][]string
 
+	var fiveOfAKindJokers [][]string
+	var fourOfAKindJokers [][]string
+	var fullHouseJokers [][]string
+	var threeOfAKindJokers [][]string
+	var twoPairsJokers [][]string
+	var onePairJokers [][]string
+	var highCardJokers [][]string
+
 	var handWithBidsSorted [][]string
+	var handWithBidsSortedJokers [][]string
 
 	for fileScanner.Scan() {
 		row := fileScanner.Text()
@@ -67,20 +77,57 @@ func main() {
 	}
 
 	for _, hand := range handsWithBids {
+		numberOfJokers := countJokers(hand)
 		if isFiveOfAKind(hand) {
 			fiveOfAKind = append(fiveOfAKind, hand)
+			fiveOfAKindJokers = append(fiveOfAKindJokers, hand)
 		} else if isForOfAKind(hand) {
 			fourOfAKind = append(fourOfAKind, hand)
+
+			if numberOfJokers == 1 || numberOfJokers == 4 {
+				fiveOfAKindJokers = append(fiveOfAKindJokers, hand)
+			} else {
+				fourOfAKindJokers = append(fourOfAKindJokers, hand)
+			}
+
 		} else if isFullHouse(hand) {
 			fullHouse = append(fullHouse, hand)
+
+			if numberOfJokers >= 1 {
+				fiveOfAKindJokers = append(fiveOfAKindJokers, hand)
+			} else {
+				fullHouseJokers = append(fullHouseJokers, hand)
+			}
 		} else if isThreeOfAKind(hand) {
 			threeOfAKind = append(threeOfAKind, hand)
+			if numberOfJokers == 1 || numberOfJokers == 3 {
+				fourOfAKindJokers = append(fourOfAKindJokers, hand)
+			} else {
+				threeOfAKindJokers = append(threeOfAKindJokers, hand)
+			}
 		} else if isTwoPairs(hand) {
 			twoPairs = append(twoPairs, hand)
+			if numberOfJokers == 2 {
+				fourOfAKindJokers = append(fourOfAKindJokers, hand)
+			} else if numberOfJokers == 1 {
+				fullHouseJokers = append(fullHouseJokers, hand)
+			} else {
+				twoPairsJokers = append(twoPairsJokers, hand)
+			}
 		} else if isOnePair(hand) {
 			onePair = append(onePair, hand)
+			if numberOfJokers == 1 || numberOfJokers == 2 {
+				threeOfAKindJokers = append(threeOfAKindJokers, hand)
+			} else {
+				onePairJokers = append(onePairJokers, hand)
+			}
 		} else {
 			highCard = append(highCard, hand)
+			if numberOfJokers == 1 {
+				onePairJokers = append(onePairJokers, hand)
+			} else {
+				highCardJokers = append(highCardJokers, hand)
+			}
 		}
 	}
 
@@ -109,6 +156,36 @@ func main() {
 	}
 
 	fmt.Println(totalWinnings)
+
+	StrengthMap["J"] = 1
+
+	SortByFirstDiffChar(fiveOfAKindJokers)
+	SortByFirstDiffChar(fourOfAKindJokers)
+	SortByFirstDiffChar(fullHouseJokers)
+	SortByFirstDiffChar(threeOfAKindJokers)
+	SortByFirstDiffChar(twoPairsJokers)
+	SortByFirstDiffChar(onePairJokers)
+	SortByFirstDiffChar(highCardJokers)
+
+	handWithBidsSortedJokers = append(handWithBidsSortedJokers, fiveOfAKindJokers...)
+	handWithBidsSortedJokers = append(handWithBidsSortedJokers, fourOfAKindJokers...)
+	handWithBidsSortedJokers = append(handWithBidsSortedJokers, fullHouseJokers...)
+	handWithBidsSortedJokers = append(handWithBidsSortedJokers, threeOfAKindJokers...)
+	handWithBidsSortedJokers = append(handWithBidsSortedJokers, twoPairsJokers...)
+	handWithBidsSortedJokers = append(handWithBidsSortedJokers, onePairJokers...)
+	handWithBidsSortedJokers = append(handWithBidsSortedJokers, highCardJokers...)
+
+	length2 := len(handWithBidsSortedJokers)
+
+	for index, hand := range handWithBidsSortedJokers {
+		bid, _ := strconv.Atoi(hand[5])
+		rank := length2 - index
+		totalWinningsJokers += rank * bid
+	}
+
+	fmt.Println(totalWinningsJokers)
+	fmt.Println((length2))
+
 }
 
 func GetStrength(char string) int {
@@ -225,3 +302,25 @@ func isOnePair(hand []string) bool {
 	}
 	return foundTwo
 }
+
+func countJokers(hand []string) int {
+	count := 0
+	for _, item := range hand {
+		if item == "J" {
+			count++
+		}
+	}
+	return count
+}
+
+// if one J in poker then if 5, if 4 J then 5
+
+// already full house, if one J then 5
+
+// three of a kind, if one J then poker, if 2 J then 5, if 3 J then poker
+
+// two pairs, if one J then full house, if 2 J then poker
+
+// one pair, if one J then three of a kind, if 2 J then three of a kind
+
+// high card, if one J then one pair
